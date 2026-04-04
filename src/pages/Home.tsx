@@ -26,6 +26,7 @@ import {
   Network
 } from "lucide-react";
 import React, { useState, useEffect } from "react";
+import { supabase } from "../supabaseClient";
 
 // مكون الخلفية التقنية المتحركة
 const TechBackground = () => {
@@ -74,22 +75,27 @@ const TechBackground = () => {
 
 export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [data, setData] = useState<any>(null);
+  const [contentRows, setContentRows] = useState<any[]>([]);
 
   useEffect(() => {
-    fetch('/api/content')
-      .then(res => res.json())
-      .then(d => setData(d))
-      .catch(console.error);
+    // Replaced local API fetch with Supabase select
+    supabase.from('site_content').select('*').order('id')
+      .then(({data, error}) => {
+        if (data && !error) setContentRows(data);
+      });
   }, []);
 
-  if (!data) {
+  if (contentRows.length === 0) {
     return (
       <div className="min-h-screen bg-bg-dark flex items-center justify-center text-white">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-brand-primary"></div>
       </div>
     );
   }
+
+  const heroRow = contentRows.find(c => c.section_name === 'hero') || {};
+  const contactRow = contentRows.find(c => c.section_name === 'contact') || {};
+  const serviceRows = contentRows.filter(c => c.section_name === 'service');
 
   const iconMap: Record<string, React.ReactNode> = {
     "Smartphone": <Smartphone className="w-10 h-10 text-brand-accent" />,
@@ -117,7 +123,7 @@ export default function Home() {
             <div className="hidden md:flex items-center gap-8">
               <a href="#home" className="text-text-muted hover:text-brand-accent font-medium transition-colors">الرئيسية</a>
               <a href="#services" className="text-text-muted hover:text-brand-accent font-medium transition-colors">خدماتنا</a>
-              <a href={data.contact.whatsapp || "#"} target="_blank" rel="noreferrer" className="bg-brand-primary text-white px-6 py-2.5 rounded-full font-semibold hover:bg-brand-primary/90 transition-all shadow-lg shadow-brand-primary/20">
+              <a href={contactRow.image_url || "#"} target="_blank" rel="noreferrer" className="bg-brand-primary text-white px-6 py-2.5 rounded-full font-semibold hover:bg-brand-primary/90 transition-all shadow-lg shadow-brand-primary/20">
                 اتصل بنا
               </a>
             </div>
@@ -140,7 +146,7 @@ export default function Home() {
           >
             <a href="#home" className="block text-text-muted px-4 py-2 hover:bg-brand-primary/10 rounded-lg">الرئيسية</a>
             <a href="#services" className="block text-text-muted px-4 py-2 hover:bg-brand-primary/10 rounded-lg">خدماتنا</a>
-            <a href={data.contact.whatsapp || "#"} target="_blank" rel="noreferrer" className="block text-center w-full bg-brand-primary text-white px-6 py-3 rounded-xl font-semibold">اتصل بنا</a>
+            <a href={contactRow.image_url || "#"} target="_blank" rel="noreferrer" className="block text-center w-full bg-brand-primary text-white px-6 py-3 rounded-xl font-semibold">اتصل بنا</a>
           </motion.div>
         )}
       </nav>
@@ -158,14 +164,14 @@ export default function Home() {
             >
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-brand-primary/10 text-brand-primary rounded-full text-sm font-bold mb-6 border border-brand-primary/20">
                 <Zap className="w-4 h-4 fill-current" />
-                {data.hero.badge}
+                رائدون في حلول الذكاء الاصطناعي
               </div>
               <h1 className="text-5xl lg:text-7xl font-bold text-white leading-tight mb-6">
-                {data.hero.title} <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-l from-brand-primary via-brand-accent to-brand-secondary">{data.hero.highlight}</span>
+                {heroRow.title} <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-l from-brand-primary via-brand-accent to-brand-secondary">مع ترقية</span>
               </h1>
               <p className="text-xl text-text-muted mb-10 leading-relaxed max-w-xl">
-                {data.hero.description}
+                {heroRow.description}
               </p>
               <div className="flex flex-wrap gap-4">
                 <motion.button 
@@ -218,9 +224,9 @@ export default function Home() {
           </div>
           
           <div className="space-y-32">
-            {data.services.map((service: any, index: number) => (
+            {serviceRows.map((service: any, index: number) => (
               <motion.div
-                key={index}
+                key={service.id}
                 initial={{ opacity: 0, y: 50 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-100px" }}
@@ -235,7 +241,7 @@ export default function Home() {
                   >
                     <div className="absolute -inset-4 bg-brand-primary/5 rounded-[2.5rem] blur-2xl group-hover:bg-brand-primary/10 transition-all"></div>
                     <img 
-                      src={service.image} 
+                      src={service.image_url || "https://picsum.photos/seed/default/800/600"} 
                       alt={service.title} 
                       className="relative rounded-[2rem] shadow-2xl w-full h-[300px] lg:h-[450px] object-cover border border-white/10 brightness-75 group-hover:brightness-100 transition-all duration-500"
                       referrerPolicy="no-referrer"
@@ -246,7 +252,7 @@ export default function Home() {
                 {/* Content Side */}
                 <div className="flex-1 text-right lg:text-right">
                   <div className="mb-6 bg-brand-primary/10 w-20 h-20 rounded-3xl flex items-center justify-center">
-                    {iconMap[service.icon] || <Bot className="w-10 h-10 text-brand-accent" />}
+                    <Bot className="w-10 h-10 text-brand-accent" />
                   </div>
                   <h3 className="text-3xl lg:text-4xl font-bold mb-6 text-white">{service.title}</h3>
                   <p className="text-xl text-text-muted leading-relaxed mb-8">
@@ -277,7 +283,7 @@ export default function Home() {
             <p className="text-xl text-gray-400 mb-12">
               انضم إلى مئات الشركات التي بدأت رحلتها نحو التميز مع ترقية. استشارتك الأولى مجانية تماماً.
             </p>
-            <a href={data.contact.whatsapp || "#"} target="_blank" rel="noreferrer" className="inline-block bg-brand-primary text-white px-12 py-5 rounded-full text-xl font-bold hover:bg-brand-primary/90 transition-all shadow-2xl shadow-brand-primary/20 hover:shadow-brand-primary/30">
+            <a href={contactRow.image_url || "#"} target="_blank" rel="noreferrer" className="inline-block bg-brand-primary text-white px-12 py-5 rounded-full text-xl font-bold hover:bg-brand-primary/90 transition-all shadow-2xl shadow-brand-primary/20 hover:shadow-brand-primary/30">
               احجز استشارتك المجانية الآن
             </a>
           </motion.div>
@@ -308,9 +314,9 @@ export default function Home() {
             <div>
               <h4 className="font-bold mb-6 text-white">تواصل معنا</h4>
               <ul className="space-y-4 text-text-muted">
-                <li className="flex items-center gap-3"><Mail className="w-4 h-4" /> {data.contact.email}</li>
-                <li className="flex items-center gap-3"><Phone className="w-4 h-4" /> <span dir="ltr">{data.contact.phone}</span></li>
-                <li className="flex items-center gap-3"><Globe className="w-4 h-4" /> {data.contact.address}</li>
+                <li className="flex items-center gap-3"><Mail className="w-4 h-4" /> info@tarqia.com</li>
+                <li className="flex items-center gap-3"><Phone className="w-4 h-4" /> <span dir="ltr">{contactRow.title}</span></li>
+                <li className="flex items-center gap-3"><Globe className="w-4 h-4" /> {contactRow.description}</li>
               </ul>
             </div>
           </div>

@@ -1,54 +1,50 @@
 import React, { useState, useEffect } from 'react';
+import { supabase } from '../supabaseClient';
 
 export default function Admin() {
-  const [data, setData] = useState<any>(null);
+  const [contentRows, setContentRows] = useState<any[]>([]);
   const [status, setStatus] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
 
   useEffect(() => {
     if (isAuthenticated) {
-      fetch('/api/content')
-        .then(res => res.json())
-        .then(d => setData(d))
-        .catch(err => setStatus('خطأ في جلب البيانات'));
+      fetchData();
     }
   }, [isAuthenticated]);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const fetchData = async () => {
+    const { data, error } = await supabase.from('site_content').select('*').order('id');
+    if (data && !error) {
+      setContentRows(data);
+    } else {
+      setStatus('خطأ في جلب البيانات من قاعدة البيانات');
+    }
+  };
+
+  const handleChange = (id: number, field: string, value: string) => {
+    setContentRows(rows => rows.map(r => r.id === id ? { ...r, [field]: value } : r));
+  };
+
+  const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      const res = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password })
-      });
-      const auth = await res.json();
-      if (auth.success) {
-        setIsAuthenticated(true);
-      } else {
-        setStatus('كلمة المرور غير صحيحة');
-      }
-    } catch (error) {
-      setStatus('خطأ في تسجيل الدخول');
+    // Simple mock auth for demonstration as requested previously
+    if (password === 'admin123') {
+      setIsAuthenticated(true);
+    } else {
+      setStatus('كلمة المرور غير صحيحة');
     }
   };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus('جاري الحفظ...');
-    try {
-      const res = await fetch('/api/content', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-      if (res.ok) {
-        setStatus('تم الحفظ بنجاح!');
-        setTimeout(() => setStatus(''), 3000);
-      }
-    } catch (err) {
-      setStatus('فشل الحفظ');
+    const { error } = await supabase.from('site_content').upsert(contentRows);
+    if (!error) {
+      setStatus('تم الحفظ بنجاح!');
+      setTimeout(() => setStatus(''), 3000);
+    } else {
+      setStatus('فشل الحفظ: ' + error.message);
     }
   };
 
@@ -73,13 +69,45 @@ export default function Admin() {
     );
   }
 
-  if (!data) return <div className="min-h-screen bg-bg-dark flex items-center justify-center text-white">جاري التحميل...</div>;
+  if (contentRows.length === 0) {
+    const handleSeed = async () => {
+      setStatus('جاري إضافة المحتوى...');
+      const defaultData = [
+        { id: 1, section_name: 'hero', title: 'نصنع مستقبل أعمالك', description: 'حلول أعمال مبتكرة مصممة خصيصاً لتمكين الشركات من التفوق في عصر البيانات. نحن لا نبني تقنيات فحسب، بل نصنع شركاء للنجاح مع ترقية.', image_url: '' },
+        { id: 2, section_name: 'contact', title: '+966590952288', description: 'القصيم، المملكة العربية السعودية', image_url: 'https://wa.me/966590952288' },
+        { id: 3, section_name: 'service', title: 'بناء تطبيقات الجوال', description: 'نحن متخصصون في تحويل أفكارك إلى تطبيقات جوال متكاملة لنظامي iOS و Android. نركز على تقديم تجربة مستخدم سلسة وتصميمات عصرية تضمن تفاعل العملاء، مع إدارة كاملة لعملية النشر على App Store و Google Play.', image_url: 'https://picsum.photos/seed/mobile-app-v3/800/600' },
+        { id: 4, section_name: 'service', title: 'بناء مواقع خاصة', description: 'نصمم ونطور مواقع إلكترونية مخصصة تعكس هوية علامتك التجارية وتلبي احتياجات عملك الفريدة. نستخدم أحدث التقنيات لضمان السرعة، الأمان، والتوافق التام مع محركات البحث وكافة الأجهزة.', image_url: 'https://picsum.photos/seed/web-dev-v3/800/600' },
+        { id: 5, section_name: 'service', title: 'خدمات الأتمتة', description: 'وداعاً للمهام اليدوية المتكررة. نقوم بتطوير أنظمة أتمتة ذكية تربط بين أدواتك المختلفة وتدير سير العمل بذكاء، مما يقلل التكاليف التشغيلية ويزيد من إنتاجية فريقك بشكل ملحوظ.', image_url: 'https://picsum.photos/seed/automation-v3/800/600' },
+        { id: 6, section_name: 'service', title: 'خدمة العملاء بالذكاء الاصطناعي', description: 'ارفع مستوى رضا عملائك من خلال أنظمة الدردشة الآلية (Chatbots) المتقدمة. تعتمد أنظمتنا على معالجة اللغات الطبيعية لفهم استفسارات العملاء بدقة وتقديم حلول فورية على مدار الساعة.', image_url: 'https://picsum.photos/seed/ai-chatbot-v3/800/600' }
+      ];
+      const { error } = await supabase.from('site_content').insert(defaultData);
+      if (!error) {
+        setStatus('تم رفع البيانات بنجاح!');
+        fetchData();
+      } else {
+        setStatus('حدث خطأ: ' + error.message);
+      }
+    };
+    return (
+      <div className="min-h-screen bg-bg-dark flex flex-col items-center justify-center text-white space-y-6" dir="rtl">
+        {status && <p className="text-xl text-yellow-400 font-bold mb-4">{status}</p>}
+        <p className="text-xl text-gray-400">جاري التحميل... أو أن قاعدة البيانات فارغة تماماً.</p>
+        <button onClick={handleSeed} className="bg-brand-primary px-8 py-4 rounded-xl font-bold hover:bg-brand-primary/90 transition shadow-lg mt-4">
+          نقر هنا لوضع المحتوى الأساسي الافتراضي للبدء
+        </button>
+      </div>
+    );
+  }
+
+  const heroRow = contentRows.find(c => c.section_name === 'hero');
+  const contactRow = contentRows.find(c => c.section_name === 'contact');
+  const serviceRows = contentRows.filter(c => c.section_name === 'service');
 
   return (
     <div className="min-h-screen bg-bg-dark text-text-light font-sans" dir="rtl">
       <div className="max-w-4xl mx-auto py-12 px-4">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-bold text-white">إدارة المحتوى</h1>
+          <h1 className="text-4xl font-bold text-white">إدارة المحتوى (Supabase)</h1>
           <a href="/" className="text-brand-accent hover:underline">زيارة الموقع</a>
         </div>
         
@@ -91,98 +119,74 @@ export default function Admin() {
 
         <form onSubmit={handleSave} className="space-y-12">
           {/* Contact Section */}
-          <section className="bg-white/5 p-6 rounded-2xl border border-white/10">
-            <h2 className="text-2xl font-bold text-white mb-6">بيانات التواصل</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-text-muted mb-2">رقم الهاتف</label>
-                <input 
-                  type="text" 
-                  value={data.contact.phone}
-                  onChange={e => setData({...data, contact: {...data.contact, phone: e.target.value}})}
-                  className="w-full bg-black/20 text-white px-4 py-3 rounded-lg border border-white/10 focus:border-brand-primary outline-none transition-all"
-                  dir="ltr"
-                />
+          {contactRow && (
+            <section className="bg-white/5 p-6 rounded-2xl border border-white/10">
+              <h2 className="text-2xl font-bold text-white mb-6">بيانات التواصل</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-text-muted mb-2">رقم الهاتف</label>
+                  <input 
+                    type="text" 
+                    value={contactRow.title || ''}
+                    onChange={e => handleChange(contactRow.id, 'title', e.target.value)}
+                    className="w-full bg-black/20 text-white px-4 py-3 rounded-lg border border-white/10 focus:border-brand-primary outline-none transition-all"
+                    dir="ltr"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-muted mb-2">رابط الواتساب لزر (اتصل بنا)</label>
+                  <input 
+                    type="text" 
+                    value={contactRow.image_url || ''}
+                    onChange={e => handleChange(contactRow.id, 'image_url', e.target.value)}
+                    className="w-full bg-black/20 text-white px-4 py-3 rounded-lg border border-white/10 focus:border-brand-primary outline-none transition-all"
+                    dir="ltr"
+                    placeholder="https://wa.me/..."
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-text-muted mb-2">العنوان</label>
+                  <input 
+                    type="text" 
+                    value={contactRow.description || ''}
+                    onChange={e => handleChange(contactRow.id, 'description', e.target.value)}
+                    className="w-full bg-black/20 text-white px-4 py-3 rounded-lg border border-white/10 focus:border-brand-primary outline-none transition-all"
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-text-muted mb-2">البريد الإلكتروني</label>
-                <input 
-                  type="email" 
-                  value={data.contact.email}
-                  onChange={e => setData({...data, contact: {...data.contact, email: e.target.value}})}
-                  className="w-full bg-black/20 text-white px-4 py-3 rounded-lg border border-white/10 focus:border-brand-primary outline-none transition-all"
-                  dir="ltr"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-text-muted mb-2">العنوان</label>
-                <input 
-                  type="text" 
-                  value={data.contact.address}
-                  onChange={e => setData({...data, contact: {...data.contact, address: e.target.value}})}
-                  className="w-full bg-black/20 text-white px-4 py-3 rounded-lg border border-white/10 focus:border-brand-primary outline-none transition-all"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-text-muted mb-2">رابط الواتساب لزر (اتصل بنا)</label>
-                <input 
-                  type="text" 
-                  value={data.contact.whatsapp || ''}
-                  onChange={e => setData({...data, contact: {...data.contact, whatsapp: e.target.value}})}
-                  className="w-full bg-black/20 text-white px-4 py-3 rounded-lg border border-white/10 focus:border-brand-primary outline-none transition-all"
-                  dir="ltr"
-                  placeholder="https://wa.me/966..."
-                />
-              </div>
-            </div>
-          </section>
+            </section>
+          )}
 
           {/* Hero Section */}
-          <section className="bg-white/5 p-6 rounded-2xl border border-white/10">
-            <h2 className="text-2xl font-bold text-white mb-6">قسم الرئيسية (Hero)</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-text-muted mb-2">النص التعريفي (Badge)</label>
-                <input 
-                  type="text" 
-                  value={data.hero.badge}
-                  onChange={e => setData({...data, hero: {...data.hero, badge: e.target.value}})}
-                  className="w-full bg-black/20 text-white px-4 py-3 rounded-lg border border-white/10"
-                />
+          {heroRow && (
+            <section className="bg-white/5 p-6 rounded-2xl border border-white/10">
+              <h2 className="text-2xl font-bold text-white mb-6">قسم الرئيسية (Hero)</h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-text-muted mb-2">العنوان الرئيسي</label>
+                  <input 
+                    type="text" 
+                    value={heroRow.title || ''}
+                    onChange={e => handleChange(heroRow.id, 'title', e.target.value)}
+                    className="w-full bg-black/20 text-white px-4 py-3 rounded-lg border border-white/10"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-muted mb-2">الوصف</label>
+                  <textarea 
+                    value={heroRow.description || ''}
+                    onChange={e => handleChange(heroRow.id, 'description', e.target.value)}
+                    className="w-full bg-black/20 text-white px-4 py-3 rounded-lg border border-white/10 h-24"
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-text-muted mb-2">العنوان الرئيسي</label>
-                <input 
-                  type="text" 
-                  value={data.hero.title}
-                  onChange={e => setData({...data, hero: {...data.hero, title: e.target.value}})}
-                  className="w-full bg-black/20 text-white px-4 py-3 rounded-lg border border-white/10"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-text-muted mb-2">النص الملون المكمل</label>
-                <input 
-                  type="text" 
-                  value={data.hero.highlight}
-                  onChange={e => setData({...data, hero: {...data.hero, highlight: e.target.value}})}
-                  className="w-full bg-black/20 text-white px-4 py-3 rounded-lg border border-white/10"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-text-muted mb-2">الوصف</label>
-                <textarea 
-                  value={data.hero.description}
-                  onChange={e => setData({...data, hero: {...data.hero, description: e.target.value}})}
-                  className="w-full bg-black/20 text-white px-4 py-3 rounded-lg border border-white/10 h-24"
-                />
-              </div>
-            </div>
-          </section>
+            </section>
+          )}
 
           {/* Services Section */}
           <section className="bg-white/5 p-6 rounded-2xl border border-white/10">
             <h2 className="text-2xl font-bold text-white mb-6">الخدمات</h2>
-            {data.services.map((service: any, index: number) => (
+            {serviceRows.map((service, index) => (
               <div key={service.id} className="mb-8 p-4 bg-black/30 rounded-xl border border-white/5">
                 <h3 className="text-xl font-bold text-white mb-4">خدمة {index + 1}</h3>
                 <div className="space-y-4">
@@ -190,12 +194,8 @@ export default function Admin() {
                     <label className="block text-sm font-medium text-text-muted mb-2">عنوان الخدمة</label>
                     <input 
                       type="text" 
-                      value={service.title}
-                      onChange={e => {
-                        const newServices = [...data.services];
-                        newServices[index].title = e.target.value;
-                        setData({...data, services: newServices});
-                      }}
+                      value={service.title || ''}
+                      onChange={e => handleChange(service.id, 'title', e.target.value)}
                       className="w-full bg-black/20 text-white px-4 py-3 rounded-lg border border-white/10"
                     />
                   </div>
@@ -203,12 +203,8 @@ export default function Admin() {
                     <label className="block text-sm font-medium text-text-muted mb-2">رابط الصورة</label>
                     <input 
                       type="text" 
-                      value={service.image}
-                      onChange={e => {
-                        const newServices = [...data.services];
-                        newServices[index].image = e.target.value;
-                        setData({...data, services: newServices});
-                      }}
+                      value={service.image_url || ''}
+                      onChange={e => handleChange(service.id, 'image_url', e.target.value)}
                       className="w-full bg-black/20 text-white px-4 py-3 rounded-lg border border-white/10"
                       dir="ltr"
                     />
@@ -216,18 +212,26 @@ export default function Admin() {
                   <div>
                     <label className="block text-sm font-medium text-text-muted mb-2">الوصف</label>
                     <textarea 
-                      value={service.description}
-                      onChange={e => {
-                        const newServices = [...data.services];
-                        newServices[index].description = e.target.value;
-                        setData({...data, services: newServices});
-                      }}
+                      value={service.description || ''}
+                      onChange={e => handleChange(service.id, 'description', e.target.value)}
                       className="w-full bg-black/20 text-white px-4 py-3 rounded-lg border border-white/10 h-24"
                     />
                   </div>
                 </div>
               </div>
             ))}
+            
+            {/* Adding new service function (if needed) */}
+            <button 
+              type="button"
+              onClick={() => {
+                const newId = Math.max(...contentRows.map(r => r.id), 0) + 1;
+                setContentRows([...contentRows, { id: newId, section_name: 'service', title: '', description: '', image_url: '' }]);
+              }}
+              className="bg-white/10 text-white px-6 py-3 rounded-xl border border-white/20 mt-4 hover:bg-white/20 transition"
+            >
+              + إضافة خدمة جديدة
+            </button>
           </section>
 
           <button type="submit" className="w-full bg-brand-primary text-white py-4 rounded-xl text-xl font-bold hover:bg-brand-primary/90 transition-all shadow-lg hover:shadow-brand-primary/20 sticky bottom-4">
