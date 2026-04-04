@@ -204,8 +204,8 @@ export default function Home() {
                 className="relative z-10"
               >
                 <img 
-                  src="https://picsum.photos/seed/ai-tech-v2/800/600" 
-                  alt="AI Technology" 
+                  src={heroRow.image_url || "https://picsum.photos/seed/ai-tech-v2/800/600"} 
+                  alt={heroRow.title || "AI Technology"} 
                   className="rounded-3xl shadow-2xl border border-white/10 object-cover w-full h-[400px] lg:h-[500px] brightness-90"
                   referrerPolicy="no-referrer"
                 />
