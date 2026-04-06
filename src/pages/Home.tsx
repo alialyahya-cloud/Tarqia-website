@@ -23,7 +23,13 @@ import {
   X,
   Zap,
   TrendingUp,
-  Network
+  Network,
+  Shield,
+  Camera,
+  Users,
+  Code,
+  LineChart,
+  Video
 } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
@@ -101,7 +107,13 @@ export default function Home() {
     "Smartphone": <Smartphone className="w-10 h-10 text-brand-accent" />,
     "Layout": <Layout className="w-10 h-10 text-brand-accent" />,
     "Settings": <Settings className="w-10 h-10 text-brand-accent" />,
-    "Bot": <Bot className="w-10 h-10 text-brand-accent" />
+    "Bot": <Bot className="w-10 h-10 text-brand-accent" />,
+    "Shield": <Shield className="w-10 h-10 text-brand-accent" />,
+    "Camera": <Camera className="w-10 h-10 text-brand-accent" />,
+    "Users": <Users className="w-10 h-10 text-brand-accent" />,
+    "Code": <Code className="w-10 h-10 text-brand-accent" />,
+    "LineChart": <LineChart className="w-10 h-10 text-brand-accent" />,
+    "Video": <Video className="w-10 h-10 text-brand-accent" />
   };
 
   return (
@@ -252,16 +264,12 @@ export default function Home() {
                 {/* Content Side */}
                 <div className="flex-1 text-right lg:text-right">
                   <div className="mb-6 bg-brand-primary/10 w-20 h-20 rounded-3xl flex items-center justify-center">
-                    <Bot className="w-10 h-10 text-brand-accent" />
+                    {iconMap[service.icon_name] || <Bot className="w-10 h-10 text-brand-accent" />}
                   </div>
                   <h3 className="text-3xl lg:text-4xl font-bold mb-6 text-white">{service.title}</h3>
                   <p className="text-xl text-text-muted leading-relaxed mb-8">
                     {service.description}
                   </p>
-                  <button className="inline-flex items-center gap-2 text-brand-accent font-bold text-lg hover:gap-4 transition-all group">
-                    تعرف على المزيد
-                    <ArrowRight className="w-5 h-5 rotate-180" />
-                  </button>
                 </div>
               </motion.div>
             ))}

@@ -253,6 +253,26 @@ export default function Admin() {
                     />
                   </div>
                   <div>
+                    <label className="block text-sm font-medium text-text-muted mb-2">أيقونة الخدمة</label>
+                    <select 
+                      value={service.icon_name || 'Bot'}
+                      onChange={e => handleChange(service.id, 'icon_name', e.target.value)}
+                      className="w-full bg-black/20 text-white px-4 py-3 rounded-lg border border-white/10"
+                      dir="ltr"
+                    >
+                      <option value="Bot">Bot (روبوت الذكاء الاصطناعي)</option>
+                      <option value="Smartphone">Smartphone (هاتف)</option>
+                      <option value="Layout">Layout (موقع إلكتروني)</option>
+                      <option value="Settings">Settings (تروس / إعدادات)</option>
+                      <option value="Shield">Shield (درع / حماية)</option>
+                      <option value="Camera">Camera (كاميرا)</option>
+                      <option value="Users">Users (أشخاص / فريق)</option>
+                      <option value="Code">Code (أكواد / برمجة)</option>
+                      <option value="LineChart">LineChart (تحليل بيانات)</option>
+                      <option value="Video">Video (تصوير وتسجيل)</option>
+                    </select>
+                  </div>
+                  <div>
                     <label className="block text-sm font-medium text-text-muted mb-2">رابط الصورة</label>
                     <input 
                       type="text" 
