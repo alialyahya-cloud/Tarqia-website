@@ -263,8 +263,12 @@ export default function Home() {
 
                 {/* Content Side */}
                 <div className="flex-1 text-right lg:text-right">
-                  <div className="mb-6 bg-brand-primary/10 w-20 h-20 rounded-3xl flex items-center justify-center">
-                    {iconMap[service.icon_name] || <Bot className="w-10 h-10 text-brand-accent" />}
+                  <div className="mb-6 bg-brand-primary/10 w-20 h-20 rounded-3xl flex items-center justify-center overflow-hidden">
+                    {service.icon_name?.startsWith('data:image') || service.icon_name?.startsWith('http') ? (
+                      <img src={service.icon_name} alt="icon" className="w-10 h-10 object-contain" />
+                    ) : (
+                      iconMap[service.icon_name] || <Bot className="w-10 h-10 text-brand-accent" />
+                    )}
                   </div>
                   <h3 className="text-3xl lg:text-4xl font-bold mb-6 text-white">{service.title}</h3>
                   <p className="text-xl text-text-muted leading-relaxed mb-8">
