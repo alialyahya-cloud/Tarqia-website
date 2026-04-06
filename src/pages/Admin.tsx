@@ -5,7 +5,24 @@ export default function Admin() {
   const [contentRows, setContentRows] = useState<any[]>([]);
   const [status, setStatus] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  useEffect(() => {
+    // Check initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setIsAuthenticated(true);
+      }
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -26,13 +43,19 @@ export default function Admin() {
     setContentRows(rows => rows.map(r => r.id === id ? { ...r, [field]: value } : r));
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simple mock auth for demonstration as requested previously
-    if (password === 'admin123') {
-      setIsAuthenticated(true);
+    setStatus('جاري التحقق...');
+    
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (error) {
+      setStatus('بيانات الدخول غير صحيحة');
     } else {
-      setStatus('كلمة المرور غير صحيحة');
+      setIsAuthenticated(true);
     }
   };
 
@@ -52,13 +75,24 @@ export default function Admin() {
     return (
       <div className="min-h-screen bg-bg-dark flex items-center justify-center p-4 font-sans" dir="rtl">
         <form onSubmit={handleLogin} className="bg-white/5 p-8 rounded-2xl border border-white/10 max-w-sm w-full">
-          <h2 className="text-2xl font-bold text-white mb-6 text-center">لوحة التحكم</h2>
+          <h2 className="text-2xl font-bold text-white mb-6 text-center">تسجيل الدخول الآمن (Supabase)</h2>
+          <input 
+            type="email" 
+            placeholder="البريد الإلكتروني"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            className="w-full bg-black/20 text-white px-4 py-3 rounded-lg mb-4 border border-white/10"
+            dir="ltr"
+            required
+          />
           <input 
             type="password" 
-            placeholder="كلمة المرور (اكتب: admin123)"
+            placeholder="كلمة المرور"
             value={password}
             onChange={e => setPassword(e.target.value)}
             className="w-full bg-black/20 text-white px-4 py-3 rounded-lg mb-4 border border-white/10"
+            dir="ltr"
+            required
           />
           <button type="submit" className="w-full bg-brand-primary text-white py-3 rounded-lg font-bold hover:bg-brand-primary/90 transition-all">
             دخول
@@ -107,8 +141,16 @@ export default function Admin() {
     <div className="min-h-screen bg-bg-dark text-text-light font-sans" dir="rtl">
       <div className="max-w-4xl mx-auto py-12 px-4">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-bold text-white">إدارة المحتوى (Supabase)</h1>
-          <a href="/" className="text-brand-accent hover:underline">زيارة الموقع</a>
+          <h1 className="text-4xl font-bold text-white">إدارة المحتوى</h1>
+          <div className="flex gap-4">
+            <button 
+              onClick={() => supabase.auth.signOut()} 
+              className="text-text-muted hover:text-red-400 transition"
+            >
+              تسجيل خروج
+            </button>
+            <a href="/" className="text-brand-accent hover:underline">زيارة الموقع</a>
+          </div>
         </div>
         
         {status && (
