@@ -1,13 +1,3 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import { motion, useScroll, useTransform } from "motion/react";
 import { 
   Brain, 
@@ -29,66 +19,75 @@ import {
   Users,
   Code,
   LineChart,
-  Video
+  Video,
+  Eye,
+  Cpu,
+  Link2,
+  ChevronDown
 } from "lucide-react";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "../supabaseClient";
 
-// مكون الخلفية التقنية المتحركة
+/* ═══════════════════════════════════════════════
+   مكون الخلفية التقنية المتحركة
+   ═══════════════════════════════════════════════ */
 const TechBackground = () => {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-      {/* شبكة تقنية خفيفة */}
-      <div className="absolute inset-0 opacity-[0.05]" 
-           style={{ backgroundImage: 'radial-gradient(#00d2ff 1px, transparent 1px)', size: '40px 40px', backgroundSize: '40px 40px' }}>
+      <div className="absolute inset-0 opacity-[0.03]" 
+           style={{ backgroundImage: 'radial-gradient(#00d2ff 1px, transparent 1px)', backgroundSize: '50px 50px' }}>
       </div>
-      
-      {/* جسيمات متحركة توحي بالبيانات */}
-      {[...Array(15)].map((_, i) => (
+      {[...Array(20)].map((_, i) => (
         <motion.div
           key={i}
           className="absolute bg-brand-primary/10 rounded-full blur-xl"
           initial={{ 
-            width: Math.random() * 200 + 100, 
-            height: Math.random() * 200 + 100,
+            width: Math.random() * 300 + 100, 
+            height: Math.random() * 300 + 100,
             x: Math.random() * 100 + "%", 
             y: Math.random() * 100 + "%",
-            opacity: 0.1
+            opacity: 0.05
           }}
           animate={{ 
             x: [Math.random() * 100 + "%", Math.random() * 100 + "%"],
             y: [Math.random() * 100 + "%", Math.random() * 100 + "%"],
-            opacity: [0.1, 0.2, 0.1]
+            opacity: [0.05, 0.15, 0.05]
           }}
           transition={{ 
-            duration: Math.random() * 20 + 10, 
+            duration: Math.random() * 25 + 15, 
             repeat: Infinity, 
             ease: "linear" 
           }}
         />
       ))}
-
-      {/* خطوط تقنية متقاطعة */}
-      <svg className="absolute inset-0 w-full h-full opacity-[0.08]">
-        <pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse">
-          <path d="M 100 0 L 0 0 0 100" fill="none" stroke="#00d2ff" strokeWidth="0.5" />
-        </pattern>
-        <rect width="100%" height="100%" fill="url(#grid)" />
-      </svg>
     </div>
   );
 };
 
+/* ═══════════════════════════════════════════════
+   الصفحة الرئيسية
+   ═══════════════════════════════════════════════ */
 export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [contentRows, setContentRows] = useState<any[]>([]);
+  const [scrolled, setScrolled] = useState(false);
+
+  // Parallax refs
+  const heroRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
+  const heroImageY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
+  const heroTextY = useTransform(scrollYProgress, [0, 1], ["0%", "15%"]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
 
   useEffect(() => {
-    // Replaced local API fetch with Supabase select
     supabase.from('site_content').select('*').order('id')
       .then(({data, error}) => {
         if (data && !error) setContentRows(data);
       });
+
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   if (contentRows.length === 0) {
@@ -118,24 +117,23 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-bg-dark text-text-light font-sans" dir="rtl">
-      {/* Navigation */}
-      <nav className="fixed w-full bg-bg-dark/80 backdrop-blur-md z-50 border-b border-white/10">
+
+      {/* ══════════ Navigation ══════════ */}
+      <nav className={`fixed w-full z-50 transition-all duration-500 ${scrolled ? 'bg-bg-dark/95 backdrop-blur-xl shadow-2xl shadow-black/30 border-b border-white/5' : 'bg-transparent'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-20 items-center">
             <div className="flex items-center gap-2">
-              <motion.div 
-                whileHover={{ scale: 1.05 }}
-                className="flex items-center"
-              >
+              <motion.div whileHover={{ scale: 1.05 }} className="flex items-center">
                 <img src="/logo.png" alt="ترقية Tarqia" className="h-20 w-auto object-contain scale-[1.5] md:scale-[1.8] origin-right" />
               </motion.div>
             </div>
             
             {/* Desktop Menu */}
             <div className="hidden md:flex items-center gap-8">
-              <a href="#home" className="text-text-muted hover:text-brand-accent font-medium transition-colors">الرئيسية</a>
-              <a href="#services" className="text-text-muted hover:text-brand-accent font-medium transition-colors">خدماتنا</a>
-              <a href={contactRow.image_url || "#"} target="_blank" rel="noreferrer" className="bg-brand-primary text-white px-6 py-2.5 rounded-full font-semibold hover:bg-brand-primary/90 transition-all shadow-lg shadow-brand-primary/20">
+              <a href="#home" className="text-white/70 hover:text-brand-accent font-medium transition-colors">الرئيسية</a>
+              <a href="#about" className="text-white/70 hover:text-brand-accent font-medium transition-colors">من نحن</a>
+              <a href="#services" className="text-white/70 hover:text-brand-accent font-medium transition-colors">خدماتنا</a>
+              <a href={contactRow.image_url || "#"} target="_blank" rel="noreferrer" className="bg-brand-primary text-white px-6 py-2.5 rounded-full font-semibold hover:bg-brand-primary/90 transition-all shadow-lg shadow-brand-primary/20 hover:shadow-brand-primary/40">
                 اتصل بنا
               </a>
             </div>
@@ -154,92 +152,249 @@ export default function Home() {
           <motion.div 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="md:hidden bg-bg-dark border-b border-white/10 p-4 space-y-4 shadow-xl"
+            className="md:hidden bg-bg-dark/95 backdrop-blur-xl border-b border-white/10 p-4 space-y-4 shadow-xl"
           >
-            <a href="#home" className="block text-text-muted px-4 py-2 hover:bg-brand-primary/10 rounded-lg">الرئيسية</a>
-            <a href="#services" className="block text-text-muted px-4 py-2 hover:bg-brand-primary/10 rounded-lg">خدماتنا</a>
+            <a href="#home" onClick={() => setIsMenuOpen(false)} className="block text-white/70 px-4 py-2 hover:bg-brand-primary/10 rounded-lg">الرئيسية</a>
+            <a href="#about" onClick={() => setIsMenuOpen(false)} className="block text-white/70 px-4 py-2 hover:bg-brand-primary/10 rounded-lg">من نحن</a>
+            <a href="#services" onClick={() => setIsMenuOpen(false)} className="block text-white/70 px-4 py-2 hover:bg-brand-primary/10 rounded-lg">خدماتنا</a>
             <a href={contactRow.image_url || "#"} target="_blank" rel="noreferrer" className="block text-center w-full bg-brand-primary text-white px-6 py-3 rounded-xl font-semibold">اتصل بنا</a>
           </motion.div>
         )}
       </nav>
 
-      {/* Hero Section with Tech Background */}
-      <section id="home" className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden min-h-screen flex items-center">
-        <TechBackground />
+      {/* ══════════ HERO — Full-Screen Parallax ══════════ */}
+      <section id="home" ref={heroRef} className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        {/* صورة خلفية كاملة مع Parallax */}
+        <motion.div 
+          style={{ y: heroImageY }} 
+          className="absolute inset-0 z-0"
+        >
+          <img 
+            src={heroRow.image_url || "https://picsum.photos/seed/ai-tech-v2/1920/1080"} 
+            alt={heroRow.title || "ترقية"} 
+            className="w-full h-[120%] object-cover"
+            referrerPolicy="no-referrer"
+          />
+          {/* تدرج غامق فوق الصورة */}
+          <div className="absolute inset-0 bg-gradient-to-b from-bg-dark/80 via-bg-dark/60 to-bg-dark"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-bg-dark/50 via-transparent to-bg-dark/50"></div>
+        </motion.div>
         
+        <TechBackground />
+
+        {/* المحتوى النصي */}
+        <motion.div 
+          style={{ y: heroTextY, opacity: heroOpacity }}
+          className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center"
+        >
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+          >
+            <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-primary/10 text-brand-primary rounded-full text-sm font-bold mb-8 border border-brand-primary/20 backdrop-blur-sm">
+              <Zap className="w-4 h-4 fill-current" />
+              رائدون في حلول الذكاء الاصطناعي
+            </div>
+          </motion.div>
+
+          <motion.h1 
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="text-5xl sm:text-6xl lg:text-8xl font-bold text-white leading-tight mb-8"
+          >
+            {heroRow.title} <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-l from-brand-primary via-brand-accent to-brand-secondary">مع ترقية</span>
+          </motion.h1>
+
+          {/* الشعار اللفظي */}
+          <motion.p 
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+            className="text-2xl sm:text-3xl font-bold text-brand-accent/80 mb-6 tracking-wide"
+          >
+            " تكاملٌ داخلي، تواصلٌ ذكي "
+          </motion.p>
+
+          <motion.p 
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.8 }}
+            className="text-lg sm:text-xl text-white/60 mb-12 leading-relaxed max-w-2xl mx-auto"
+          >
+            {heroRow.description}
+          </motion.p>
+
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 1.0 }}
+            className="flex flex-wrap gap-4 justify-center"
+          >
+            <a href={contactRow.image_url || "#"} target="_blank" rel="noreferrer">
+              <motion.button 
+                whileHover={{ scale: 1.05, boxShadow: "0 0 40px rgba(0, 210, 255, 0.3)" }}
+                whileTap={{ scale: 0.95 }}
+                className="bg-brand-primary text-white px-10 py-4 rounded-full text-lg font-bold hover:bg-brand-primary/90 transition-all flex items-center gap-3 group shadow-xl shadow-brand-primary/20"
+              >
+                ابدأ الآن
+                <ArrowRight className="w-5 h-5 group-hover:-translate-x-1 transition-transform rotate-180" />
+              </motion.button>
+            </a>
+            <a href="#services">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="border-2 border-white/20 text-white px-10 py-4 rounded-full text-lg font-bold hover:bg-white/5 transition-all backdrop-blur-sm"
+              >
+                عرض خدماتنا
+              </motion.button>
+            </a>
+          </motion.div>
+        </motion.div>
+
+        {/* سهم متحرك للأسفل */}
+        <motion.div 
+          animate={{ y: [0, 12, 0] }} 
+          transition={{ duration: 2, repeat: Infinity }}
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10"
+        >
+          <ChevronDown className="w-8 h-8 text-white/30" />
+        </motion.div>
+      </section>
+
+      {/* ══════════ ABOUT TARQIA — من نحن ══════════ */}
+      <section id="about" className="py-24 lg:py-32 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-bg-dark via-[#060e1f] to-[#0d121f]"></div>
+        <div className="absolute top-0 left-0 w-[600px] h-[600px] bg-brand-primary/5 rounded-full blur-[150px] pointer-events-none"></div>
+        <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-brand-accent/5 rounded-full blur-[120px] pointer-events-none"></div>
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-            >
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-brand-primary/10 text-brand-primary rounded-full text-sm font-bold mb-6 border border-brand-primary/20">
-                <Zap className="w-4 h-4 fill-current" />
-                رائدون في حلول الذكاء الاصطناعي
-              </div>
-              <h1 className="text-5xl lg:text-7xl font-bold text-white leading-tight mb-6">
-                {heroRow.title} <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-l from-brand-primary via-brand-accent to-brand-secondary">مع ترقية</span>
-              </h1>
-              <p className="text-xl text-text-muted mb-10 leading-relaxed max-w-xl">
-                {heroRow.description}
+          {/* عنوان القسم */}
+          <motion.div 
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-20"
+          >
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-brand-accent/10 text-brand-accent rounded-full text-sm font-bold mb-6 border border-brand-accent/20">
+              <Brain className="w-4 h-4" />
+              تعرّف علينا
+            </div>
+            <h2 className="text-4xl lg:text-6xl font-bold text-white mb-6">من نحن</h2>
+          </motion.div>
+
+          {/* نص الوصف الرئيسي */}
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="max-w-4xl mx-auto mb-20"
+          >
+            <div className="relative">
+              <div className="absolute -right-4 top-0 bottom-0 w-1 bg-gradient-to-b from-brand-primary via-brand-accent to-transparent rounded-full"></div>
+              <p className="text-xl sm:text-2xl text-white/80 leading-[1.9] pr-8">
+                في <span className="text-brand-accent font-bold">ترقية</span>، نؤمن أن القوة تكمن في الاتصال. نحن لا نكتفي ببناء الأنظمة، بل نقوم بهندسة الربط المتكامل بين وحدات عملك الداخلية وبين عملائك.
               </p>
-              <div className="flex flex-wrap gap-4">
-                <motion.button 
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="bg-brand-primary text-white px-8 py-4 rounded-full text-lg font-bold hover:bg-brand-primary/90 transition-all flex items-center gap-2 group shadow-xl shadow-brand-primary/20"
-                >
-                  ابدأ الآن
-                  <ArrowRight className="w-5 h-5 group-hover:-translate-x-1 transition-transform rotate-180" />
-                </motion.button>
-                <a href="#services" className="border-2 border-white/10 text-white px-8 py-4 rounded-full text-lg font-bold hover:bg-white/5 transition-all text-center">
-                  عرض خدماتنا
-                </a>
+            </div>
+          </motion.div>
+
+          {/* الثلاث بطاقات: الرؤية — النبرة — القيمة */}
+          <div className="grid md:grid-cols-3 gap-8">
+            {/* بطاقة الرؤية */}
+            <motion.div 
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              whileHover={{ y: -8, transition: { duration: 0.3 } }}
+              className="group relative bg-white/[0.03] backdrop-blur-sm rounded-3xl p-8 border border-white/10 hover:border-brand-primary/30 transition-all duration-500"
+            >
+              <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-brand-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="relative z-10">
+                <div className="w-16 h-16 bg-brand-primary/10 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-brand-primary/20 transition-colors">
+                  <Eye className="w-8 h-8 text-brand-primary" />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-4">الرؤية</h3>
+                <p className="text-white/60 text-lg leading-relaxed">
+                  الانتقال بالأنظمة التقليدية إلى أنظمة ذكية ذاتية الإدارة.
+                </p>
               </div>
             </motion.div>
-            
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 1 }}
-              className="relative"
+
+            {/* بطاقة النبرة */}
+            <motion.div 
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              whileHover={{ y: -8, transition: { duration: 0.3 } }}
+              className="group relative bg-white/[0.03] backdrop-blur-sm rounded-3xl p-8 border border-white/10 hover:border-brand-accent/30 transition-all duration-500"
             >
-              <div className="absolute -top-20 -right-20 w-64 h-64 bg-brand-primary/10 rounded-full blur-3xl opacity-50 animate-pulse"></div>
-              <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-brand-accent/5 rounded-full blur-3xl opacity-50 animate-pulse"></div>
-              
-              {/* عنصر تقني عائم */}
-              <motion.div 
-                animate={{ y: [0, -20, 0] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                className="relative z-10"
-              >
-                <img 
-                  src={heroRow.image_url || "https://picsum.photos/seed/ai-tech-v2/800/600"} 
-                  alt={heroRow.title || "AI Technology"} 
-                  className="rounded-3xl shadow-2xl border border-white/10 object-cover w-full h-[400px] lg:h-[500px] brightness-90"
-                  referrerPolicy="no-referrer"
-                />
-              </motion.div>
+              <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-brand-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="relative z-10">
+                <div className="w-16 h-16 bg-brand-accent/10 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-brand-accent/20 transition-colors">
+                  <Cpu className="w-8 h-8 text-brand-accent" />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-4">النبرة</h3>
+                <p className="text-white/60 text-lg leading-relaxed">
+                  احترافية، مبتكرة، وموثوقة — هذا ما تعكسه كل تفاصيل عملنا.
+                </p>
+              </div>
+            </motion.div>
+
+            {/* بطاقة التكامل */}
+            <motion.div 
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+              whileHover={{ y: -8, transition: { duration: 0.3 } }}
+              className="group relative bg-white/[0.03] backdrop-blur-sm rounded-3xl p-8 border border-white/10 hover:border-brand-secondary/30 transition-all duration-500"
+            >
+              <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-brand-secondary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="relative z-10">
+                <div className="w-16 h-16 bg-brand-secondary/10 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-brand-secondary/20 transition-colors">
+                  <Link2 className="w-8 h-8 text-brand-secondary" />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-4">التكامل</h3>
+                <p className="text-white/60 text-lg leading-relaxed">
+                  ربط متكامل بين وحدات عملك الداخلية وبين عملائك — في منظومة واحدة.
+                </p>
+              </div>
             </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Services Section - Redesigned to be larger with images */}
-      <section id="services" className="py-24 bg-[#0d121f] relative overflow-hidden">
+      {/* ══════════ SERVICES — الخدمات ══════════ */}
+      <section id="services" className="py-24 lg:py-32 bg-[#0d121f] relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-primary/5 rounded-full blur-[150px] pointer-events-none"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">خدماتنا المبتكرة</h2>
-            <p className="text-xl text-text-muted max-w-2xl mx-auto">نقدم حلولاً تقنية متكاملة مصممة لرفع كفاءة أعمالك وتحقيق أهدافك الرقمية.</p>
-          </div>
+          <motion.div 
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-20"
+          >
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-brand-primary/10 text-brand-primary rounded-full text-sm font-bold mb-6 border border-brand-primary/20">
+              <Settings className="w-4 h-4" />
+              ماذا نقدم
+            </div>
+            <h2 className="text-4xl lg:text-6xl font-bold text-white mb-6">خدماتنا المبتكرة</h2>
+            <p className="text-xl text-white/50 max-w-2xl mx-auto">نقدم حلولاً تقنية متكاملة مصممة لرفع كفاءة أعمالك وتحقيق أهدافك الرقمية.</p>
+          </motion.div>
           
           <div className="space-y-32">
             {serviceRows.map((service: any, index: number) => (
               <motion.div
                 key={service.id}
-                initial={{ opacity: 0, y: 50 }}
+                initial={{ opacity: 0, y: 60 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-100px" }}
                 transition={{ duration: 0.8 }}
@@ -251,7 +406,7 @@ export default function Home() {
                     whileHover={{ scale: 1.02 }}
                     className="relative group"
                   >
-                    <div className="absolute -inset-4 bg-brand-primary/5 rounded-[2.5rem] blur-2xl group-hover:bg-brand-primary/10 transition-all"></div>
+                    <div className="absolute -inset-4 bg-brand-primary/5 rounded-[2.5rem] blur-2xl group-hover:bg-brand-primary/10 transition-all duration-500"></div>
                     <img 
                       src={service.image_url || "https://picsum.photos/seed/default/800/600"} 
                       alt={service.title} 
@@ -271,7 +426,7 @@ export default function Home() {
                     )}
                   </div>
                   <h3 className="text-3xl lg:text-4xl font-bold mb-6 text-white">{service.title}</h3>
-                  <p className="text-xl text-text-muted leading-relaxed mb-8">
+                  <p className="text-xl text-white/50 leading-relaxed mb-8">
                     {service.description}
                   </p>
                 </div>
@@ -281,28 +436,35 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-24 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[#060910] -z-10"></div>
-        <div className="absolute top-0 right-0 w-96 h-96 bg-brand-primary/10 rounded-full blur-[120px] pointer-events-none"></div>
-        <div className="max-w-4xl mx-auto px-4 text-center text-white">
+      {/* ══════════ CTA Section ══════════ */}
+      <section className="py-24 lg:py-32 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0d121f] via-[#060910] to-bg-dark"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-brand-primary/5 rounded-full blur-[200px] pointer-events-none"></div>
+        <div className="max-w-4xl mx-auto px-4 text-center text-white relative z-10">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
           >
-            <h2 className="text-4xl lg:text-5xl font-bold mb-8">هل أنت مستعد للتحول الرقمي؟</h2>
-            <p className="text-xl text-gray-400 mb-12">
-              انضم إلى مئات الشركات التي بدأت رحلتها نحو التميز مع ترقية. استشارتك الأولى مجانية تماماً.
+            <h2 className="text-4xl lg:text-6xl font-bold mb-8">هل أنت مستعد للتحول الرقمي؟</h2>
+            <p className="text-xl text-white/40 mb-12 max-w-2xl mx-auto leading-relaxed">
+              انضم إلى الشركات التي بدأت رحلتها نحو التميز مع ترقية. استشارتك الأولى مجانية تماماً.
             </p>
-            <a href={contactRow.image_url || "#"} target="_blank" rel="noreferrer" className="inline-block bg-brand-primary text-white px-12 py-5 rounded-full text-xl font-bold hover:bg-brand-primary/90 transition-all shadow-2xl shadow-brand-primary/20 hover:shadow-brand-primary/30">
-              احجز استشارتك المجانية الآن
+            <a href={contactRow.image_url || "#"} target="_blank" rel="noreferrer">
+              <motion.button 
+                whileHover={{ scale: 1.05, boxShadow: "0 0 60px rgba(0, 210, 255, 0.25)" }}
+                whileTap={{ scale: 0.95 }}
+                className="bg-brand-primary text-white px-12 py-5 rounded-full text-xl font-bold hover:bg-brand-primary/90 transition-all shadow-2xl shadow-brand-primary/20"
+              >
+                احجز استشارتك المجانية الآن
+              </motion.button>
             </a>
           </motion.div>
         </div>
       </section>
 
-      {/* Footer */}
+      {/* ══════════ Footer ══════════ */}
       <footer className="bg-bg-dark pt-20 pb-10 border-t border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-12 mb-16">
@@ -310,29 +472,29 @@ export default function Home() {
               <div className="flex items-center gap-2 mb-6">
                 <img src="/logo.png" alt="ترقية Tarqia" className="h-20 w-auto object-contain scale-[1.5] origin-right" />
               </div>
-              <p className="text-text-muted max-sm leading-relaxed">
-                نحن شركة رائدة في تقديم حلول الذكاء الاصطناعي المبتكرة للشركات في منطقة الشرق الأوسط، نهدف إلى جعل التكنولوجيا أداة لتمكين الإنسان مع ترقية (Tarqia).
+              <p className="text-white/50 leading-relaxed mb-4">
+                نحن شركة رائدة في تقديم حلول الذكاء الاصطناعي المبتكرة للشركات في منطقة الشرق الأوسط، نهدف إلى جعل التكنولوجيا أداة لتمكين الإنسان مع ترقية.
               </p>
+              <p className="text-brand-accent/60 font-bold text-sm">" تكاملٌ داخلي، تواصلٌ ذكي "</p>
             </div>
             <div>
               <h4 className="font-bold mb-6 text-white">روابط سريعة</h4>
-              <ul className="space-y-4 text-text-muted">
-                <li><a href="#" className="hover:text-brand-accent transition-colors">عن الشركة</a></li>
-                <li><a href="#" className="hover:text-brand-accent transition-colors">المدونة</a></li>
-                <li><a href="#" className="hover:text-brand-accent transition-colors">الوظائف</a></li>
-                <li><a href="#" className="hover:text-brand-accent transition-colors">سياسة الخصوصية</a></li>
+              <ul className="space-y-4 text-white/50">
+                <li><a href="#home" className="hover:text-brand-accent transition-colors">الرئيسية</a></li>
+                <li><a href="#about" className="hover:text-brand-accent transition-colors">من نحن</a></li>
+                <li><a href="#services" className="hover:text-brand-accent transition-colors">خدماتنا</a></li>
               </ul>
             </div>
             <div>
               <h4 className="font-bold mb-6 text-white">تواصل معنا</h4>
-              <ul className="space-y-4 text-text-muted">
-                <li className="flex items-center gap-3"><Mail className="w-4 h-4" /> info@tarqia.com</li>
-                <li className="flex items-center gap-3"><Phone className="w-4 h-4" /> <span dir="ltr">{contactRow.title}</span></li>
-                <li className="flex items-center gap-3"><Globe className="w-4 h-4" /> {contactRow.description}</li>
+              <ul className="space-y-4 text-white/50">
+                <li className="flex items-center gap-3"><Mail className="w-4 h-4 flex-shrink-0" /> info@tarqia.com</li>
+                <li className="flex items-center gap-3"><Phone className="w-4 h-4 flex-shrink-0" /> <span dir="ltr">{contactRow.title}</span></li>
+                <li className="flex items-center gap-3"><Globe className="w-4 h-4 flex-shrink-0" /> {contactRow.description}</li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-white/10 pt-8 text-center text-text-muted text-sm">
+          <div className="border-t border-white/10 pt-8 text-center text-white/30 text-sm">
             <p>© 2026 Tarqia. جميع الحقوق محفوظة.</p>
           </div>
         </div>
