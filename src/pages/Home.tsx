@@ -314,9 +314,6 @@ export default function Home() {
               whileHover={{ y: -8, transition: { duration: 0.3 } }}
               className="group text-center"
             >
-              <div className="w-16 h-16 bg-brand-primary/10 rounded-2xl flex items-center justify-center mb-6 mx-auto group-hover:bg-brand-primary/20 transition-colors">
-                <Eye className="w-8 h-8 text-brand-primary" />
-              </div>
               <h3 className="text-2xl font-bold text-white mb-4">الرؤية</h3>
               <p className="text-white/60 text-lg leading-relaxed">
                 الانتقال بالأنظمة التقليدية إلى أنظمة ذكية ذاتية الإدارة.
@@ -332,9 +329,6 @@ export default function Home() {
               whileHover={{ y: -8, transition: { duration: 0.3 } }}
               className="group text-center"
             >
-              <div className="w-16 h-16 bg-brand-accent/10 rounded-2xl flex items-center justify-center mb-6 mx-auto group-hover:bg-brand-accent/20 transition-colors">
-                <Link2 className="w-8 h-8 text-brand-accent" />
-              </div>
               <h3 className="text-2xl font-bold text-white mb-4">التكامل</h3>
               <p className="text-white/60 text-lg leading-relaxed">
                 ربط متكامل بين وحدات عملك الداخلية وبين عملائك — في منظومة واحدة.
