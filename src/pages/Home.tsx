@@ -414,9 +414,9 @@ export default function Home() {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <h2 className="text-4xl lg:text-6xl font-bold mb-8">هل أنت مستعد للتحول الرقمي؟</h2>
+            <h2 className="text-4xl lg:text-6xl font-bold mb-8">مستعد للتحول الرقمي؟</h2>
             <p className="text-xl text-white/40 mb-12 max-w-2xl mx-auto leading-relaxed">
-              انضم إلى الشركات التي بدأت رحلتها نحو التميز مع ترقية. استشارتك الأولى مجانية تماماً.
+              انضم إلى الشركات التي بدأت رحلتها نحو التميز مع ترقية. استشارتك مجانية.
             </p>
             <a href={contactRow.image_url || "#"} target="_blank" rel="noreferrer">
               <motion.button 
