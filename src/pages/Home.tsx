@@ -222,7 +222,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.8 }}
-            className="text-lg sm:text-xl text-white/60 mb-12 leading-relaxed max-w-2xl mx-auto"
+            className="text-lg sm:text-xl text-white/80 mb-12 leading-[1.8] max-w-3xl mx-auto whitespace-pre-line"
           >
             {heroRow.description}
           </motion.p>
