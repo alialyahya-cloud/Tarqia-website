@@ -67,12 +67,11 @@ const TechBackground = () => {
 /* ═══════════════════════════════════════════════
    الصفحة الرئيسية
    ═══════════════════════════════════════════════ */
-export default function Home() {
+function HomeContent({ contentRows }: { contentRows: any[] }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [contentRows, setContentRows] = useState<any[]>([]);
   const [scrolled, setScrolled] = useState(false);
 
-  // Parallax refs
+  // Parallax refs - will now correctly attach because this component only mounts after loading
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const heroImageY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
@@ -80,23 +79,10 @@ export default function Home() {
   const heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
 
   useEffect(() => {
-    supabase.from('site_content').select('*').order('id')
-      .then(({data, error}) => {
-        if (data && !error) setContentRows(data);
-      });
-
     const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  if (contentRows.length === 0) {
-    return (
-      <div className="min-h-screen bg-bg-dark flex items-center justify-center text-white">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-brand-primary"></div>
-      </div>
-    );
-  }
 
   const heroRow = contentRows.find(c => c.section_name === 'hero') || {};
   const contactRow = contentRows.find(c => c.section_name === 'contact') || {};
@@ -169,10 +155,18 @@ export default function Home() {
           style={{ y: heroImageY }} 
           className="absolute inset-0 z-0"
         >
+          {/* صورة سطح المكتب */}
           <img 
             src={heroRow.image_url || "https://picsum.photos/seed/ai-tech-v2/1920/1080"} 
             alt={heroRow.title || "ترقية"} 
-            className="w-full h-[120%] object-cover"
+            className="hidden md:block w-full h-[120%] object-cover"
+            referrerPolicy="no-referrer"
+          />
+          {/* صورة الجوال */}
+          <img 
+            src={heroRow.icon_name || heroRow.image_url || "https://picsum.photos/seed/ai-tech-v2/1080/1920"} 
+            alt={heroRow.title || "ترقية"} 
+            className="block md:hidden w-full h-[120%] object-cover"
             referrerPolicy="no-referrer"
           />
           {/* تدرج غامق فوق الصورة */}
@@ -468,4 +462,25 @@ export default function Home() {
       </footer>
     </div>
   );
+}
+
+export default function Home() {
+  const [contentRows, setContentRows] = useState<any[]>([]);
+
+  useEffect(() => {
+    supabase.from('site_content').select('*').order('id')
+      .then(({data, error}) => {
+        if (data && !error) setContentRows(data);
+      });
+  }, []);
+
+  if (contentRows.length === 0) {
+    return (
+      <div className="min-h-screen bg-bg-dark flex items-center justify-center text-white">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-brand-primary"></div>
+      </div>
+    );
+  }
+
+  return <HomeContent contentRows={contentRows} />;
 }

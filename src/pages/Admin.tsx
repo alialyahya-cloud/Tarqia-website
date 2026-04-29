@@ -254,11 +254,22 @@ export default function Admin() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-text-muted mb-2">رابط الصورة الرئيسية</label>
+                  <label className="block text-sm font-medium text-text-muted mb-2">رابط صورة سطح المكتب</label>
                   <input 
                     type="text" 
                     value={heroRow.image_url || ''}
                     onChange={e => handleChange(heroRow.id, 'image_url', e.target.value)}
+                    className="w-full bg-black/20 text-white px-4 py-3 rounded-lg border border-white/10"
+                    dir="ltr"
+                    placeholder="https://..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-text-muted mb-2">رابط صورة الجوال</label>
+                  <input 
+                    type="text" 
+                    value={heroRow.icon_name || ''}
+                    onChange={e => handleChange(heroRow.id, 'icon_name', e.target.value)}
                     className="w-full bg-black/20 text-white px-4 py-3 rounded-lg border border-white/10"
                     dir="ltr"
                     placeholder="https://..."
